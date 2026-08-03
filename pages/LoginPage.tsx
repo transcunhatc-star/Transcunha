@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
 import type { User } from '../types';
+import { UserProfile } from '../types';
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
@@ -30,6 +31,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
     try {
       // Clear any existing Supabase Auth session before starting a new internal login
       await supabase.auth.signOut();
+      let userProfile: User | null = null;
+
       // Direct query to app_users instead of Supabase Auth
       const { data: dbUser, error: dbError } = await supabase
         .from('app_users')
@@ -38,24 +41,49 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
         .eq('password', cleanPassword)
         .single();
 
-      if (dbError || !dbUser) {
+      if (dbUser) {
+        userProfile = {
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          profile: dbUser.profile as UserProfile,
+          active: dbUser.active,
+          password: dbUser.password,
+          clientId: dbUser.client_id,
+          requirePasswordChange: dbUser.require_password_change,
+          authId: dbUser.auth_id
+        };
+      } else {
+        // Fallback de login para contas principais do sistema (Admin e DL Logística)
+        if ((cleanEmail === 'admin' || cleanEmail === 'admin@transcunha.com.br') && cleanPassword === 'mauricio15') {
+          userProfile = {
+            id: 'admin-system-id',
+            name: 'Administrador do Sistema',
+            email: 'admin@transcunha.com.br',
+            profile: UserProfile.Diretor,
+            active: true,
+            password: 'mauricio15',
+            requirePasswordChange: false
+          };
+        } else if (cleanEmail === 'dllogtransporte15@gmail.com' && cleanPassword === 'ANITA2020') {
+          userProfile = {
+            id: 'dl-system-id',
+            name: 'DL Logística',
+            email: 'dllogtransporte15@gmail.com',
+            profile: UserProfile.Diretor,
+            active: true,
+            password: 'ANITA2020',
+            requirePasswordChange: false
+          };
+        }
+      }
+
+      if (!userProfile) {
         console.error('[LoginPage] Erro de login:', dbError);
         setError('Email ou senha inválidos no sistema interno.');
         setIsLoading(false);
         return;
       }
-
-      const userProfile: User = {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        profile: dbUser.profile,
-        active: dbUser.active,
-        password: dbUser.password,
-        clientId: dbUser.client_id,
-        requirePasswordChange: dbUser.require_password_change,
-        authId: dbUser.auth_id
-      };
 
       if (!userProfile.active) {
         setError('Este usuário está inativo.');
