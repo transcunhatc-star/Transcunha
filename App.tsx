@@ -1412,8 +1412,8 @@ const App: React.FC = () => {
             const relatedCargo = cargos.find(c => c.id === shipmentToDelete.cargoId);
             
             if (relatedCargo) {
-                const newScheduledVolume = Math.max(0, relatedCargo.scheduledVolume - shipmentToDelete.shipmentTonnage);
-                const newLoadedVolume = wasLoaded ? Math.max(0, relatedCargo.loadedVolume - shipmentToDelete.shipmentTonnage) : relatedCargo.loadedVolume;
+                const newScheduledVolume = Math.max(0, relatedCargo.scheduledVolume - (shipmentToDelete.shipmentTonnage || 0));
+                const newLoadedVolume = wasLoaded ? Math.max(0, relatedCargo.loadedVolume - (shipmentToDelete.shipmentTonnage || 0)) : relatedCargo.loadedVolume;
                 const updatedCargo: Cargo = { 
                     ...relatedCargo, 
                     scheduledVolume: newScheduledVolume, 

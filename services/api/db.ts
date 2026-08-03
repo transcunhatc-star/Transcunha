@@ -480,7 +480,7 @@ async function executeUpsertWithFallback(
 ): Promise<{ error: any; data?: any }> {
   let attemptPayload = { ...payload };
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
     let result: { data: any; error: any };
@@ -674,7 +674,7 @@ export async function upsertManyDrivers(drivers: Driver[]): Promise<void> {
   if (drivers.length === 0) return;
   let attemptPayload = drivers.map(fromDriver);
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
     let { error } = await supabase.from('drivers').upsert(attemptPayload);
@@ -701,7 +701,7 @@ export async function upsertManyVehicles(vehicles: Vehicle[]): Promise<void> {
   if (vehicles.length === 0) return;
   let attemptPayload = vehicles.map(fromVehicle);
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
     let { error } = await supabase.from('vehicles').upsert(attemptPayload);
@@ -728,7 +728,7 @@ export async function upsertManyShipments(shipments: Shipment[]): Promise<void> 
   if (shipments.length === 0) return;
   let attemptPayload = shipments.map(fromShipment);
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
     let { error } = await supabase.from('shipments').upsert(attemptPayload);
@@ -755,7 +755,7 @@ export async function upsertManyCargos(cargos: Cargo[]): Promise<void> {
   if (cargos.length === 0) return;
   let attemptPayload = cargos.map(fromCargo);
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
     let { error } = await supabase.from('cargos').upsert(attemptPayload);
@@ -857,6 +857,9 @@ export async function deleteCargo(id: string): Promise<void> {
 }
 
 export async function deleteShipment(id: string): Promise<void> {
+  // Limpar possíveis bloqueios antes de excluir para evitar erros de Foreign Key
+  await supabase.from('shipment_locks').delete().eq('shipment_id', id);
+  
   const { error } = await supabase.from('shipments').delete().eq('id', id);
   if (error) throw error;
 }

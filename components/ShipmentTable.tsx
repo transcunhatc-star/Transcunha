@@ -431,7 +431,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, cargos, users,
                     <div className="text-xs dark:text-gray-300">
                       <span className="font-semibold">{cargo.origin}</span>
                       <span className="mx-2 text-gray-400">→</span>
-                      <span className="font-semibold">{shipment.route || cargo.destination}</span>
+                      <span className="font-semibold">{cargo.destination}</span>
                     </div>
                   ) : (
                     <span className="text-red-500 font-bold text-[10px]">CARGA REMOVIDA</span>
@@ -546,7 +546,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, cargos, users,
                       {cargo ? (
                         <>
                           <div>{cargo.origin}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{shipment.route || cargo.destination}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{cargo.destination}</div>
                         </>
                       ) : (
                         <div className="flex flex-col">
