@@ -169,6 +169,10 @@ const App: React.FC = () => {
 
   // UI Effects (Branding & Theme)
   useEffect(() => {
+    document.title = 'Transcunha';
+  }, []);
+
+  useEffect(() => {
     if (companyLogo) {
       localStorage.setItem('transcunha_companyLogo', companyLogo);
       const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
