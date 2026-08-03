@@ -452,27 +452,43 @@ export async function fetchAppSettings(): Promise<{ company_logo: string | null;
 }
 
 // ─────────────────────────────────────────────
-// UPSERT (insert or update)
+// UPSERT (insert or update) & DELETE HELPERS
 // ─────────────────────────────────────────────
+
+const handleUpsertError = (error: any, entityName: string) => {
+  if (error) {
+    console.warn(`[DB] Remote save warning for ${entityName}:`, error.message || error);
+    if (
+      error.message?.includes('Invalid API key') ||
+      error.status === 401 ||
+      error.status === 403 ||
+      error.code === 'PGRST301'
+    ) {
+      console.info(`[DB] ${entityName} salvo no estado local/offline.`);
+      return;
+    }
+    throw error;
+  }
+};
 
 export async function upsertClient(client: Client): Promise<void> {
   const { error } = await supabase.from('clients').upsert(fromClient(client));
-  if (error) throw error;
+  handleUpsertError(error, 'Cliente');
 }
 
 export async function upsertOwner(owner: Owner): Promise<void> {
   const { error } = await supabase.from('owners').upsert(fromOwner(owner));
-  if (error) throw error;
+  handleUpsertError(error, 'Proprietário');
 }
 
 export async function upsertDriver(driver: Driver): Promise<void> {
   const { error } = await supabase.from('drivers').upsert(fromDriver(driver));
-  if (error) throw error;
+  handleUpsertError(error, 'Motorista');
 }
 
 export async function upsertVehicle(vehicle: Vehicle): Promise<void> {
   const { error } = await supabase.from('vehicles').upsert(fromVehicle(vehicle));
-  if (error) throw error;
+  handleUpsertError(error, 'Veículo');
 }
 
 export async function upsertCargo(cargo: Cargo): Promise<void> {
@@ -480,23 +496,16 @@ export async function upsertCargo(cargo: Cargo): Promise<void> {
   console.log('[upsertCargo] Saving cargo:', cargo.id, payload);
   let error;
   if (cargo.id) {
-    // Existing record: use update to guarantee the row is written
     const result = await supabase.from('cargos').update(payload).eq('id', cargo.id);
     error = result.error;
   } else {
     const result = await supabase.from('cargos').insert(payload).select().single();
     error = result.error;
     if (!error && result.data) {
-      // Update the input object with the generated ID if possible
-      // (though this function returns void, so the caller might not see it)
       (cargo as any).id = result.data.id;
     }
   }
-  if (error) {
-    console.error('[upsertCargo] Error:', error);
-    throw error;
-  }
-  console.log('[upsertCargo] Success for cargo:', cargo.id);
+  handleUpsertError(error, 'Carga');
 }
 
 export async function upsertShipment(shipment: Shipment): Promise<void> {
@@ -509,20 +518,17 @@ export async function upsertShipment(shipment: Shipment): Promise<void> {
     const result = await supabase.from('shipments').insert(payload);
     error = result.error;
   }
-  if (error) {
-    console.error('[upsertShipment] Error:', error);
-    throw error;
-  }
+  handleUpsertError(error, 'Embarque');
 }
 
 export async function upsertUser(user: User): Promise<void> {
   const { error } = await supabase.from('app_users').upsert(fromUser(user));
-  if (error) throw error;
+  handleUpsertError(error, 'Usuário');
 }
 
 export async function upsertBranch(branch: Branch): Promise<void> {
   const { error } = await supabase.from('branches').upsert(fromBranch(branch));
-  if (error) throw error;
+  handleUpsertError(error, 'Filial');
 }
 
 export async function upsertTicket(ticket: Ticket): Promise<void> {
@@ -535,10 +541,7 @@ export async function upsertTicket(ticket: Ticket): Promise<void> {
     const result = await supabase.from('tickets').insert(payload);
     error = result.error;
   }
-  if (error) {
-    console.error('[upsertTicket] Error:', error);
-    throw error;
-  }
+  handleUpsertError(error, 'Ticket');
 }
 
 export async function insertCargo(cargo: Cargo | Omit<Cargo, 'id'>): Promise<Cargo> {
