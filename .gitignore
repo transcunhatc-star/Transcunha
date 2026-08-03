@@ -35,3 +35,4 @@ mcp_config.json
 # Scratch scripts and temporary files
 scratch/
 
+.env*
