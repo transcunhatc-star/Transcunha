@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Building2, MapPin } from 'lucide-react';
 import type { Branch, User, ProfilePermissions } from '../types';
 import { UserProfile } from '../types';
 import BranchFormModal from '../components/BranchFormModal';
+import { can } from '../auth';
 
 interface BranchesPageProps {
   branches: Branch[];
@@ -22,7 +23,9 @@ const BranchesPage: React.FC<BranchesPageProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
 
-  const canManage = currentUser?.profile === UserProfile.Admin;
+  const canCreate = can('create', currentUser, 'branches', profilePermissions);
+  const canUpdate = can('update', currentUser, 'branches', profilePermissions);
+  const canDelete = can('delete', currentUser, 'branches', profilePermissions);
 
   const handleEdit = (branch: Branch) => {
     setBranchToEdit(branch);
@@ -46,7 +49,7 @@ const BranchesPage: React.FC<BranchesPageProps> = ({
             Cadastre e gerencie as unidades da empresa para controle de resultados.
           </p>
         </div>
-        {canManage && (
+        {canCreate && (
           <button
             onClick={handleNew}
             className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 group"
@@ -78,22 +81,26 @@ const BranchesPage: React.FC<BranchesPageProps> = ({
                 <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300">
                   <Building2 className="w-6 h-6 text-primary" />
                 </div>
-                {canManage && (
+                {(canUpdate || canDelete) && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleEdit(branch)}
-                      className="p-2 text-gray-400 hover:text-primary dark:hover:text-primary-light transition-colors hover:bg-primary/5 rounded-lg"
-                      title="Editar"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteBranch(branch.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                      title="Excluir"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canUpdate && (
+                      <button
+                        onClick={() => handleEdit(branch)}
+                        className="p-2 text-gray-400 hover:text-primary dark:hover:text-primary-light transition-colors hover:bg-primary/5 rounded-lg"
+                        title="Editar"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => onDeleteBranch(branch.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

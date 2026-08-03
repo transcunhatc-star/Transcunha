@@ -12,20 +12,69 @@ interface ImageUploaderProps {
   maxSizeMB?: number;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ title, description, currentImage, onSave, onRemove, maxSizeMB = 2 }) => {
+const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.9): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (file.type === 'image/svg+xml') {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        resolve(canvas.toDataURL(mimeType, quality));
+      };
+      img.onerror = () => resolve(e.target?.result as string);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+const ImageUploader: React.FC<ImageUploaderProps> = ({ title, description, currentImage, onSave, onRemove, maxSizeMB = 15 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'].includes(file.type)) {
-      setError(`Tipo de arquivo inválido. Use JPG, PNG, GIF ou SVG.`);
+    if (!['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif', 'image/webp'].includes(file.type)) {
+      setError(`Tipo de arquivo inválido. Use JPG, PNG, WEBP, GIF ou SVG.`);
       return;
     }
     if (file.size > maxSizeMB * 1024 * 1024) {
@@ -33,13 +82,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ title, description, curre
       return;
     }
     setError('');
+    setIsProcessing(true);
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      onSave(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-    event.target.value = ''; // Reset file input
+    try {
+      const compressedBase64 = await compressImage(file);
+      onSave(compressedBase64);
+    } catch (err) {
+      console.error('Error compressing image:', err);
+      setError('Erro ao processar imagem.');
+    } finally {
+      setIsProcessing(false);
+      event.target.value = ''; // Reset file input
+    }
   };
 
   return (
@@ -78,9 +132,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ title, description, curre
           />
           <button
             onClick={handleButtonClick}
-            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark"
+            disabled={isProcessing}
+            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark disabled:opacity-50"
           >
-            {currentImage ? 'Alterar Imagem' : 'Carregar Imagem'}
+            {isProcessing ? 'Processando...' : (currentImage ? 'Alterar Imagem' : 'Carregar Imagem')}
           </button>
           {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
         </div>

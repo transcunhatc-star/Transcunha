@@ -17,10 +17,11 @@ const AppearancePage: React.FC<AppearancePageProps> = ({ currentLogo, onSaveLogo
       <div className="space-y-8">
         <ImageUploader
           title="Logo da Empresa"
-          description="Faça o upload do logo que será exibido na barra lateral e na tela de login (limite de 2MB)."
+          description="Faça o upload do logo que será exibido na barra lateral e na tela de login (limite de 15MB com otimização automática)."
           currentImage={currentLogo}
           onSave={onSaveLogo}
           onRemove={() => onSaveLogo('')}
+          maxSizeMB={15}
         />
         <ImageUploader
           title="Tema de Fundo"

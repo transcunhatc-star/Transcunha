@@ -129,9 +129,17 @@ export function useDatabase(currentUser: User | null) {
       setDrivers(dbDrivers);
       setVehicles(dbVehicles);
       setProducts(dbProducts);
-      setCargos(dbCargos);
-      setShipments(dbShipments);
       setUsers(dbUsers);
+      setCargos((prev) => {
+        const remoteIds = new Set(dbCargos.map(c => c.id));
+        const localOnly = prev.filter(c => !remoteIds.has(c.id));
+        return [...dbCargos, ...localOnly];
+      });
+      setShipments((prev) => {
+        const remoteIds = new Set(dbShipments.map(s => s.id));
+        const localOnly = prev.filter(s => !remoteIds.has(s.id));
+        return [...dbShipments, ...localOnly];
+      });
       setTickets(dbTickets);
       setBranches(dbBranches);
       setActiveLocks(dbLocks);

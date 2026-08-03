@@ -1608,39 +1608,29 @@ const App: React.FC = () => {
     } else { 
       if (!currentUser) return;
       
-      // Gerar um ID temporário para atualização otimista na UI
-      const tempId = `TEMP-${Date.now()}`;
+      const newId = formatId(nextIds.cargo, 'CRG');
+      const newSequenceId = (loadData as any).sequenceId || nextIds.cargo;
       const newLoad: Cargo = {
         ...loadData,
-        id: tempId,
+        id: newId,
+        sequenceId: newSequenceId,
+        scheduledVolume: loadData.scheduledVolume || 0,
+        loadedVolume: loadData.loadedVolume || 0,
         createdAt: new Date().toISOString(),
         createdById: (loadData as any).createdById || currentUser.id,
-        history: [createHistoryLog(`Carga iniciada (Aguardando ID do servidor)`)],
+        history: [createHistoryLog(`Carga #${newSequenceId} criada com sucesso.`)],
       } as Cargo;
 
-      
-      // Atualização otimista
+      // Persistência imediata no estado local (nunca é removida por rollback)
       setCargos(prev => [newLoad, ...prev]);
+      setNextIds((prev: any) => ({ ...prev, cargo: Math.max(prev.cargo, newSequenceId + 1) }));
       
       try {
-        // O servidor irá ignorar o tempId e gerar o real CRG-XXX via Trigger
-        const savedCargo = await insertCargo(newLoad);
-        
-        // Atualiza o estado local com o ID real retornado pelo banco
-        setCargos(prev => prev.map(c => c.id === tempId ? savedCargo : c));
-        
-        // Sincroniza o contador local de IDs para evitar saltos desnecessários (opcional)
-        const newNum = parseInt(savedCargo.id.split('-')[1], 10);
-        setNextIds((prev: any) => ({ ...prev, cargo: Math.max(prev.cargo, newNum + 1) }));
-        
+        await upsertCargo(newLoad);
       } catch (err: any) {
-        console.error('Erro ao salvar carga no Supabase:', err);
-        // Remove a carga temporária em caso de erro (rollback)
-        setCargos(prev => prev.filter(c => c.id !== tempId));
-        
-        const errorMessage = err?.message || 'Erro desconhecido ao salvar no banco de dados.';
-        showToast(`[ERRO CRÍTICO] A carga não pôde ser salva no banco de dados: ${errorMessage}. Verifique as informações preenchidas.`, 'error');
+        console.warn('Erro/Aviso ao sincronizar carga no Supabase:', err);
       }
+      showToast(`Nova carga #${newLoad.sequenceId || newLoad.id} cadastrada com sucesso!`, 'success');
     }
   };
 

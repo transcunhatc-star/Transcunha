@@ -52,7 +52,7 @@ const EditPriceModal: React.FC<EditPriceModalProps> = ({ isOpen, onClose, onSave
     });
   };
 
-  const canEditCompanyPrice = [UserProfile.Admin, UserProfile.Diretor].includes(currentUser.profile as UserProfile);
+  const canEditCompanyPrice = [UserProfile.Admin, UserProfile.Diretor, UserProfile.Coordenador, UserProfile.Comercial].includes(currentUser.profile as UserProfile);
 
   if (!isOpen) return null;
 

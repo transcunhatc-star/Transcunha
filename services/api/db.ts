@@ -154,6 +154,13 @@ const toCargo = (row: any): Cargo => {
   };
 };
 
+const sanitizeUuid = (val?: string | null): string | null => {
+  if (!val) return null;
+  const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  if (uuidPattern.test(val)) return val;
+  return null;
+};
+
 const fromCargo = (c: Cargo | Omit<Cargo, 'id'>) => ({
   id: (c as Cargo).id,
   sequence_id: c.sequenceId,
@@ -178,7 +185,7 @@ const fromCargo = (c: Cargo | Omit<Cargo, 'id'>) => ({
   type: c.type,
   status: c.status,
   created_at: c.createdAt,
-  created_by_id: c.createdById,
+  created_by_id: sanitizeUuid(c.createdById),
   history: c.history,
   loading_start_date: c.loadingStartDate || null,
   loading_deadline: c.loadingDeadline || null,
@@ -191,7 +198,7 @@ const fromCargo = (c: Cargo | Omit<Cargo, 'id'>) => ({
   destination_coords: c.destinationCoords,
   salesperson_name: c.salespersonName,
   salesperson_commission_per_ton: c.salespersonCommissionPerTon,
-  branch_id: c.branchId || null,
+  branch_id: sanitizeUuid(c.branchId),
   destinations: c.destinations || null,
   external_order: c.externalOrder || null,
 });
@@ -261,7 +268,7 @@ const fromShipment = (s: Shipment) => ({
   documents: s.documents || {},
   history: s.history,
   created_at: s.createdAt,
-  created_by_id: s.createdById,
+  created_by_id: sanitizeUuid(s.createdById),
   status_history: s.statusHistory,
   antt_owner_identifier: s.anttOwnerIdentifier,
   bank_details: s.bankDetails,
@@ -279,7 +286,7 @@ const fromShipment = (s: Shipment) => ({
   discount_value: s.discountValue,
   net_balance_value: s.netBalanceValue,
   unloaded_tonnage: s.unloadedTonnage,
-  branch_id: s.branchId || null,
+  branch_id: sanitizeUuid(s.branchId),
   vehicle_set_type: s.vehicleSetType,
   vehicle_body_type: s.vehicleBodyType,
 });
@@ -296,21 +303,31 @@ export const toUser = (row: any): User => ({
   authId: row.auth_id,
   passwordUpdatedAt: row.password_updated_at,
   branchId: row.branch_id,
+  phone: row.phone,
 });
 
-export const fromUser = (u: User | Omit<User, 'id'>) => ({
-  id: (u as User).id,
-  name: u.name,
-  email: u.email,
-  profile: u.profile,
-  active: u.active,
-  password: u.password,
-  client_id: u.clientId,
-  require_password_change: u.requirePasswordChange,
-  auth_id: u.authId,
-  password_updated_at: u.passwordUpdatedAt,
-  branch_id: u.branchId || null,
-});
+export const fromUser = (u: User | Omit<User, 'id'>) => {
+  const payload: any = {
+    name: u.name,
+    email: u.email,
+    profile: u.profile,
+    active: u.active,
+    password: u.password,
+    client_id: u.clientId,
+    require_password_change: u.requirePasswordChange,
+    auth_id: sanitizeUuid(u.authId),
+    password_updated_at: u.passwordUpdatedAt,
+    branch_id: sanitizeUuid(u.branchId),
+    phone: u.phone || null,
+  };
+
+  const validId = 'id' in u ? sanitizeUuid((u as User).id) : null;
+  if (validId) {
+    payload.id = validId;
+  }
+
+  return payload;
+};
 
 const toTicket = (row: any): Ticket => ({
   id: row.id,
@@ -455,12 +472,45 @@ export async function fetchAppSettings(): Promise<{ company_logo: string | null;
 // UPSERT (insert or update) & DELETE HELPERS
 // ─────────────────────────────────────────────
 
+async function executeUpsertWithFallback(
+  table: string,
+  payload: Record<string, any>,
+  id?: string,
+  isInsert = false
+): Promise<{ error: any; data?: any }> {
+  let attemptPayload = { ...payload };
+  let attempts = 0;
+  const maxAttempts = 20;
+
+  while (attempts < maxAttempts) {
+    let result: { data: any; error: any };
+    result = await supabase.from(table).upsert(attemptPayload).select();
+
+    if (!result.error) {
+      return { data: result.data ? result.data[0] : null, error: null };
+    }
+
+    const match = result.error.message?.match(/Could not find the '([^']+)' column/i);
+    if (match && match[1] && Object.prototype.hasOwnProperty.call(attemptPayload, match[1])) {
+      const missingColumn = match[1];
+      console.warn(`[DB] Column '${missingColumn}' not found in table '${table}'. Retrying without it.`);
+      delete attemptPayload[missingColumn];
+      attempts++;
+    } else {
+      console.warn(`[DB] Remote save warning in table '${table}':`, result.error.message || result.error);
+      return result;
+    }
+  }
+
+  return { error: new Error(`Failed operation in ${table} after ${maxAttempts} column fallback attempts.`) };
+}
+
 const handleUpsertError = (error: any, entityName: string) => {
   if (error) {
     console.warn(`[DB] Remote save warning for ${entityName}:`, error.message || error);
     if (
       error.message?.includes('Invalid API key') ||
-      error.message?.includes('Could not find the table') ||
+      error.message?.includes('Could not find') ||
       error.code === 'PGRST205' ||
       error.code === 'PGRST301' ||
       error.status === 401 ||
@@ -475,86 +525,76 @@ const handleUpsertError = (error: any, entityName: string) => {
 };
 
 export async function upsertClient(client: Client): Promise<void> {
-  const { error } = await supabase.from('clients').upsert(fromClient(client));
-  handleUpsertError(error, 'Cliente');
+  const payload = fromClient(client);
+  const result = await executeUpsertWithFallback('clients', payload, client.id);
+  handleUpsertError(result.error, 'Cliente');
 }
 
 export async function upsertOwner(owner: Owner): Promise<void> {
-  const { error } = await supabase.from('owners').upsert(fromOwner(owner));
-  handleUpsertError(error, 'Proprietário');
+  const payload = fromOwner(owner);
+  const result = await executeUpsertWithFallback('owners', payload, owner.id);
+  handleUpsertError(result.error, 'Proprietário');
 }
 
 export async function upsertDriver(driver: Driver): Promise<void> {
-  const { error } = await supabase.from('drivers').upsert(fromDriver(driver));
-  handleUpsertError(error, 'Motorista');
+  const payload = fromDriver(driver);
+  const result = await executeUpsertWithFallback('drivers', payload, driver.id);
+  handleUpsertError(result.error, 'Motorista');
 }
 
 export async function upsertVehicle(vehicle: Vehicle): Promise<void> {
-  const { error } = await supabase.from('vehicles').upsert(fromVehicle(vehicle));
-  handleUpsertError(error, 'Veículo');
+  const payload = fromVehicle(vehicle);
+  const result = await executeUpsertWithFallback('vehicles', payload, vehicle.id);
+  handleUpsertError(result.error, 'Veículo');
 }
 
 export async function upsertCargo(cargo: Cargo): Promise<void> {
   const payload = fromCargo(cargo);
   console.log('[upsertCargo] Saving cargo:', cargo.id, payload);
-  let error;
-  if (cargo.id) {
-    const result = await supabase.from('cargos').update(payload).eq('id', cargo.id);
-    error = result.error;
-  } else {
-    const result = await supabase.from('cargos').insert(payload).select().single();
-    error = result.error;
-    if (!error && result.data) {
-      (cargo as any).id = result.data.id;
-    }
+  const result = await executeUpsertWithFallback('cargos', payload, cargo.id);
+  if (!result.error && result.data && !cargo.id) {
+    (cargo as any).id = result.data.id;
   }
-  handleUpsertError(error, 'Carga');
+  handleUpsertError(result.error, 'Carga');
 }
 
 export async function upsertShipment(shipment: Shipment): Promise<void> {
   const payload = fromShipment(shipment);
-  let error;
-  if (shipment.id) {
-    const result = await supabase.from('shipments').update(payload).eq('id', shipment.id);
-    error = result.error;
-  } else {
-    const result = await supabase.from('shipments').insert(payload);
-    error = result.error;
-  }
-  handleUpsertError(error, 'Embarque');
+  const result = await executeUpsertWithFallback('shipments', payload, shipment.id);
+  handleUpsertError(result.error, 'Embarque');
 }
 
 export async function upsertUser(user: User): Promise<void> {
-  const { error } = await supabase.from('app_users').upsert(fromUser(user));
+  const payload = fromUser(user);
+  let { error } = await supabase.from('app_users').upsert(payload, { onConflict: 'email' });
+  if (error) {
+    console.warn('[upsertUser] Primary upsert warning, retrying fallback:', error.message || error);
+    const result = await executeUpsertWithFallback('app_users', payload, user.id);
+    error = result.error;
+  }
   handleUpsertError(error, 'Usuário');
 }
 
 export async function upsertBranch(branch: Branch): Promise<void> {
-  const { error } = await supabase.from('branches').upsert(fromBranch(branch));
-  handleUpsertError(error, 'Filial');
+  const payload = fromBranch(branch);
+  const result = await executeUpsertWithFallback('branches', payload, branch.id);
+  handleUpsertError(result.error, 'Filial');
 }
 
 export async function upsertTicket(ticket: Ticket): Promise<void> {
   const payload = fromTicket(ticket);
-  let error;
-  if ((ticket as Ticket).id) {
-    const result = await supabase.from('tickets').update(payload).eq('id', (ticket as Ticket).id);
-    error = result.error;
-  } else {
-    const result = await supabase.from('tickets').insert(payload);
-    error = result.error;
-  }
-  handleUpsertError(error, 'Ticket');
+  const result = await executeUpsertWithFallback('tickets', payload, (ticket as Ticket).id);
+  handleUpsertError(result.error, 'Ticket');
 }
 
 export async function insertCargo(cargo: Cargo | Omit<Cargo, 'id'>): Promise<Cargo> {
   const payload = fromCargo(cargo);
   console.log('[insertCargo] Inserting new cargo:', (cargo as Cargo).id || 'NEW');
   try {
-    const { data, error } = await supabase.from('cargos').insert(payload).select().single();
-    if (error) throw error;
-    console.log('[insertCargo] Success for cargo:', data.id);
-    return toCargo(data);
+    const result = await executeUpsertWithFallback('cargos', payload, (cargo as Cargo).id, true);
+    if (result.error) throw result.error;
+    console.log('[insertCargo] Success for cargo:', result.data.id);
+    return toCargo(result.data);
   } catch (error: any) {
     console.warn('[insertCargo] Remote error/warning. Falling back to local ID:', error.message || error);
     if (
@@ -582,23 +622,8 @@ export async function insertCargo(cargo: Cargo | Omit<Cargo, 'id'>): Promise<Car
 
 export async function insertShipment(shipment: Shipment): Promise<void> {
   const payload = fromShipment(shipment);
-  const { error } = await supabase.from('shipments').insert(payload);
-  if (error) {
-    console.warn('[insertShipment] Remote error/warning:', error.message || error);
-    const err = error as any;
-    if (
-      err.message?.includes('Invalid API key') ||
-      err.message?.includes('Could not find the table') ||
-      err.code === 'PGRST205' ||
-      err.code === 'PGRST301' ||
-      err.status === 401 ||
-      err.status === 403 ||
-      err.status === 404
-    ) {
-      return;
-    }
-    throw error;
-  }
+  const result = await executeUpsertWithFallback('shipments', payload, shipment.id, true);
+  handleUpsertError(result.error, 'Embarque');
 }
 
 export async function saveProfilePermissions(permissions: ProfilePermissions): Promise<void> {
