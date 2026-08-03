@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "deploy": "node deploy.mjs"
+    "deploy": "node deploy.mjs",
+    "migrate": "node migrate.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",
@@ -32,6 +33,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
+    "dotenv": "^17.4.2",
+    "postgres": "^3.4.9",
     "typescript": "~5.8.2",
     "vite": "^6.4.2"
   },
