@@ -356,11 +356,10 @@ const fromBranch = (b: Branch | Omit<Branch, 'id' | 'createdAt'>) => ({
 // ─────────────────────────────────────────────
 
 const handleAuthError = (error: any, defaultValue: any) => {
-  if (error.code === 'PGRST116' || error.status === 406 || error.status === 401) {
-    console.warn('[DB] Auth/RLS error or no data found:', error.message);
-    return defaultValue;
+  if (error) {
+    console.warn('[DB] Supabase query warning/error:', error.message || error);
   }
-  throw error;
+  return defaultValue;
 };
 
 // ─────────────────────────────────────────────

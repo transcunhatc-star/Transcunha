@@ -156,8 +156,7 @@ export function useDatabase(currentUser: User | null) {
       ));
 
     } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-      setLoadError('Erro ao conectar ao banco de dados.');
+      console.warn('[useDatabase] Aviso ao carregar dados do banco remoto. Mantendo operação:', err);
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false); // ALWAYS runs — no more eternal spinner
