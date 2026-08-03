@@ -460,9 +460,12 @@ const handleUpsertError = (error: any, entityName: string) => {
     console.warn(`[DB] Remote save warning for ${entityName}:`, error.message || error);
     if (
       error.message?.includes('Invalid API key') ||
+      error.message?.includes('Could not find the table') ||
+      error.code === 'PGRST205' ||
+      error.code === 'PGRST301' ||
       error.status === 401 ||
       error.status === 403 ||
-      error.code === 'PGRST301'
+      error.status === 404
     ) {
       console.info(`[DB] ${entityName} salvo no estado local/offline.`);
       return;
