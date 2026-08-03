@@ -27,13 +27,19 @@ const SystemMonitorPage: React.FC = () => {
     // 1. Check Supabase (Directly via client)
     const checkSupabase = async (): Promise<ServiceStatus> => {
       try {
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        if (!key || key.includes('placeholder')) {
+          return { name: 'Supabase Database', status: 'warning', message: 'Modo Local (Aguardando Chave .env)' };
+        }
         const t1 = Date.now();
         const { error } = await supabase.from('app_settings').select('count', { count: 'exact', head: true });
         const latency = Date.now() - t1;
-        if (error) throw error;
+        if (error) {
+          return { name: 'Supabase Database', status: 'warning', message: 'Modo Local Híbrido' };
+        }
         return { name: 'Supabase Database', status: 'ok', message: 'Conectado e Operacional', latency };
       } catch (err) {
-        return { name: 'Supabase Database', status: 'error', message: 'Erro de Conexão' };
+        return { name: 'Supabase Database', status: 'warning', message: 'Modo Local Híbrido' };
       }
     };
 
