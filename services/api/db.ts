@@ -672,26 +672,110 @@ export async function saveAppSettings(settings: { company_logo?: string | null; 
 
 export async function upsertManyDrivers(drivers: Driver[]): Promise<void> {
   if (drivers.length === 0) return;
-  const { error } = await supabase.from('drivers').upsert(drivers.map(fromDriver));
-  if (error) throw error;
+  let attemptPayload = drivers.map(fromDriver);
+  let attempts = 0;
+  const maxAttempts = 20;
+
+  while (attempts < maxAttempts) {
+    let { error } = await supabase.from('drivers').upsert(attemptPayload);
+    if (!error) return;
+
+    const match = error.message?.match(/Could not find the '([^']+)' column/i);
+    if (match && match[1] && attemptPayload.length > 0 && Object.prototype.hasOwnProperty.call(attemptPayload[0], match[1])) {
+      const missingColumn = match[1];
+      console.warn(`[DB] Column '${missingColumn}' not found in table 'drivers'. Retrying without it.`);
+      attemptPayload = attemptPayload.map(d => {
+        const newD = { ...d };
+        delete (newD as any)[missingColumn];
+        return newD;
+      });
+      attempts++;
+    } else {
+      throw error;
+    }
+  }
+  throw new Error(`Failed bulk operation in drivers after ${maxAttempts} column fallback attempts.`);
 }
 
 export async function upsertManyVehicles(vehicles: Vehicle[]): Promise<void> {
   if (vehicles.length === 0) return;
-  const { error } = await supabase.from('vehicles').upsert(vehicles.map(fromVehicle));
-  if (error) throw error;
+  let attemptPayload = vehicles.map(fromVehicle);
+  let attempts = 0;
+  const maxAttempts = 20;
+
+  while (attempts < maxAttempts) {
+    let { error } = await supabase.from('vehicles').upsert(attemptPayload);
+    if (!error) return;
+
+    const match = error.message?.match(/Could not find the '([^']+)' column/i);
+    if (match && match[1] && attemptPayload.length > 0 && Object.prototype.hasOwnProperty.call(attemptPayload[0], match[1])) {
+      const missingColumn = match[1];
+      console.warn(`[DB] Column '${missingColumn}' not found in table 'vehicles'. Retrying without it.`);
+      attemptPayload = attemptPayload.map(v => {
+        const newV = { ...v };
+        delete (newV as any)[missingColumn];
+        return newV;
+      });
+      attempts++;
+    } else {
+      throw error;
+    }
+  }
+  throw new Error(`Failed bulk operation in vehicles after ${maxAttempts} column fallback attempts.`);
 }
 
 export async function upsertManyShipments(shipments: Shipment[]): Promise<void> {
   if (shipments.length === 0) return;
-  const { error } = await supabase.from('shipments').upsert(shipments.map(fromShipment));
-  if (error) throw error;
+  let attemptPayload = shipments.map(fromShipment);
+  let attempts = 0;
+  const maxAttempts = 20;
+
+  while (attempts < maxAttempts) {
+    let { error } = await supabase.from('shipments').upsert(attemptPayload);
+    if (!error) return;
+
+    const match = error.message?.match(/Could not find the '([^']+)' column/i);
+    if (match && match[1] && attemptPayload.length > 0 && Object.prototype.hasOwnProperty.call(attemptPayload[0], match[1])) {
+      const missingColumn = match[1];
+      console.warn(`[DB] Column '${missingColumn}' not found in table 'shipments'. Retrying without it.`);
+      attemptPayload = attemptPayload.map(s => {
+        const newS = { ...s };
+        delete (newS as any)[missingColumn];
+        return newS;
+      });
+      attempts++;
+    } else {
+      throw error;
+    }
+  }
+  throw new Error(`Failed bulk operation in shipments after ${maxAttempts} column fallback attempts.`);
 }
 
 export async function upsertManyCargos(cargos: Cargo[]): Promise<void> {
   if (cargos.length === 0) return;
-  const { error } = await supabase.from('cargos').upsert(cargos.map(fromCargo));
-  if (error) throw error;
+  let attemptPayload = cargos.map(fromCargo);
+  let attempts = 0;
+  const maxAttempts = 20;
+
+  while (attempts < maxAttempts) {
+    let { error } = await supabase.from('cargos').upsert(attemptPayload);
+    if (!error) return;
+
+    const match = error.message?.match(/Could not find the '([^']+)' column/i);
+    if (match && match[1] && attemptPayload.length > 0 && Object.prototype.hasOwnProperty.call(attemptPayload[0], match[1])) {
+      const missingColumn = match[1];
+      console.warn(`[DB] Column '${missingColumn}' not found in table 'cargos'. Retrying without it.`);
+      attemptPayload = attemptPayload.map(c => {
+        const newC = { ...c };
+        delete (newC as any)[missingColumn];
+        return newC;
+      });
+      attempts++;
+    } else {
+      throw error;
+    }
+  }
+  throw new Error(`Failed bulk operation in cargos after ${maxAttempts} column fallback attempts.`);
 }
 
 // ─────────────────────────────────────────────

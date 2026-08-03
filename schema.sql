@@ -68,8 +68,16 @@ CREATE TABLE IF NOT EXISTS drivers (
   cnh_category TEXT,
   phone TEXT,
   owner_id TEXT,
+  classification TEXT,
+  active BOOLEAN DEFAULT true,
+  restriction_reason TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migrações de colunas em drivers para bancos já existentes
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS classification TEXT;
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS restriction_reason TEXT;
 
 -- 5. Tabela vehicles (Veículos)
 CREATE TABLE IF NOT EXISTS vehicles (
