@@ -355,3 +355,33 @@ DO UPDATE SET
   active = true,
   require_password_change = false,
   password_updated_at = NOW();
+
+-- 14. Criação do Bucket de Storage (Anexos)
+-- O Supabase Storage usa schemas próprios. Precisamos criar o bucket para evitar erro "Bucket not found"
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('shipment_attachments', 'shipment_attachments', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Políticas de acesso público para o bucket de anexos
+DO $$ 
+BEGIN
+  -- Permite leitura pública
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'shipment_attachments');
+  END IF;
+
+  -- Permite inserção pública
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Public Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'shipment_attachments');
+  END IF;
+
+  -- Permite atualização pública
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Public Update" ON storage.objects FOR UPDATE WITH CHECK (bucket_id = 'shipment_attachments');
+  END IF;
+
+  -- Permite deleção pública
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete' AND tablename = 'objects' AND schemaname = 'storage') THEN
+    CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (bucket_id = 'shipment_attachments');
+  END IF;
+END $$;
