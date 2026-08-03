@@ -56,8 +56,14 @@ CREATE TABLE IF NOT EXISTS owners (
   bank_agency TEXT,
   bank_account TEXT,
   pix_key TEXT,
+  type TEXT,
+  bank_details TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migrações de colunas em owners
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS type TEXT;
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS bank_details TEXT;
 
 -- 4. Tabela drivers (Motoristas)
 CREATE TABLE IF NOT EXISTS drivers (
@@ -84,10 +90,20 @@ CREATE TABLE IF NOT EXISTS vehicles (
   id TEXT PRIMARY KEY,
   plate TEXT NOT NULL,
   type TEXT,
+  set_type TEXT,
+  body_type TEXT,
+  classification TEXT,
+  driver_id TEXT,
   capacity NUMERIC,
   owner_id TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migrações de colunas em vehicles
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS set_type TEXT;
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS body_type TEXT;
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS classification TEXT;
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS driver_id TEXT;
 
 -- 6. Tabela products (Produtos)
 CREATE TABLE IF NOT EXISTS products (
@@ -214,7 +230,11 @@ CREATE TABLE IF NOT EXISTS shipments (
   net_balance_value NUMERIC,
   unloaded_tonnage NUMERIC,
   branch_id TEXT,
-  cancellation_reason TEXT
+  cancellation_reason TEXT,
+  antt_owner_identifier TEXT,
+  advance_percentage NUMERIC,
+  advance_value NUMERIC,
+  route TEXT
 );
 
 -- Migrações de colunas em shipments
@@ -246,6 +266,10 @@ ALTER TABLE shipments ADD COLUMN IF NOT EXISTS net_balance_value NUMERIC;
 ALTER TABLE shipments ADD COLUMN IF NOT EXISTS unloaded_tonnage NUMERIC;
 ALTER TABLE shipments ADD COLUMN IF NOT EXISTS branch_id TEXT;
 ALTER TABLE shipments ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS antt_owner_identifier TEXT;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS advance_percentage NUMERIC;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS advance_value NUMERIC;
+ALTER TABLE shipments ADD COLUMN IF NOT EXISTS route TEXT;
 
 -- 9. Tabela branches (Filiais)
 CREATE TABLE IF NOT EXISTS branches (
