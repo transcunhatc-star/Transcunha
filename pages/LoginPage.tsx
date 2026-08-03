@@ -33,25 +33,27 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
       await supabase.auth.signOut();
       let userProfile: User | null = null;
 
-      // Direct query to app_users instead of Supabase Auth
-      const { data: dbUser, error: dbError } = await supabase
+      // Direct query to app_users by email
+      const { data: dbUsers } = await supabase
         .from('app_users')
         .select('*')
-        .eq('email', cleanEmail)
-        .eq('password', cleanPassword)
-        .single();
+        .eq('email', cleanEmail);
 
-      if (dbUser) {
+      const matchedUser = dbUsers?.find(
+        (u) => u.password === cleanPassword || u.password.trim() === cleanPassword || u.password.toUpperCase() === cleanPassword.toUpperCase()
+      );
+
+      if (matchedUser) {
         userProfile = {
-          id: dbUser.id,
-          name: dbUser.name,
-          email: dbUser.email,
-          profile: dbUser.profile as UserProfile,
-          active: dbUser.active,
-          password: dbUser.password,
-          clientId: dbUser.client_id,
-          requirePasswordChange: dbUser.require_password_change,
-          authId: dbUser.auth_id
+          id: matchedUser.id,
+          name: matchedUser.name,
+          email: matchedUser.email,
+          profile: matchedUser.profile as UserProfile,
+          active: matchedUser.active,
+          password: matchedUser.password,
+          clientId: matchedUser.client_id,
+          requirePasswordChange: matchedUser.require_password_change,
+          authId: matchedUser.auth_id
         };
       } else {
         // Fallback de login para contas principais do sistema (Admin e DL Logística)
@@ -65,7 +67,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
             password: 'mauricio15',
             requirePasswordChange: false
           };
-        } else if (cleanEmail === 'dllogtransporte15@gmail.com' && cleanPassword === 'ANITA2020') {
+        } else if (cleanEmail === 'dllogtransporte15@gmail.com' && cleanPassword.toUpperCase() === 'ANITA2020') {
           userProfile = {
             id: 'dl-system-id',
             name: 'DL Logística',
@@ -79,7 +81,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
       }
 
       if (!userProfile) {
-        console.error('[LoginPage] Erro de login:', dbError);
+        console.error('[LoginPage] Erro de login: Email ou senha incorretos.');
         setError('Email ou senha inválidos no sistema interno.');
         setIsLoading(false);
         return;

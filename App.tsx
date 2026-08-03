@@ -282,13 +282,13 @@ const App: React.FC = () => {
 
   // --- AUTH HANDLERS ---
   const handleLogin = (user: User) => {
-    localStorage.setItem('rodo_user_email', user.email);
+    localStorage.setItem('transcunha_user_email', user.email);
     setCurrentUser(user);
     setCurrentPage('dashboard');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('rodo_user_email');
+    localStorage.removeItem('transcunha_user_email');
     setCurrentUser(null);
     setCurrentPage('dashboard');
   };
