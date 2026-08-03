@@ -8,8 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "deploy": "node deploy.mjs",
-    "migrate": "node migrate.mjs"
+    "deploy": "node deploy.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",

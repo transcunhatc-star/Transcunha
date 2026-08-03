@@ -788,16 +788,34 @@ export async function uploadShipmentAttachment(shipmentId: string, docType: stri
   const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
   const filePath = `${shipmentId}/${safeDocType}_${Date.now()}_${safeFileName}`;
   
-  const { data, error } = await supabase.storage
+  let { data, error } = await supabase.storage
     .from('shipment_attachments')
     .upload(filePath, file, { upsert: true });
+
+  if (error && error.message === 'Bucket not found') {
+    console.warn('[uploadShipmentAttachment] Bucket not found. Tentando criar automaticamente pelo frontend...');
+    const { error: createError } = await supabase.storage.createBucket('shipment_attachments', { public: true });
+    
+    if (createError) {
+      console.error('[uploadShipmentAttachment] Falha ao criar bucket automaticamente:', createError);
+      throw error; // Lança o erro original se a criação falhar
+    }
+
+    console.info('[uploadShipmentAttachment] Bucket criado com sucesso. Retentando upload...');
+    const retryResult = await supabase.storage
+      .from('shipment_attachments')
+      .upload(filePath, file, { upsert: true });
+      
+    data = retryResult.data;
+    error = retryResult.error;
+  }
 
   if (error) {
     console.error(`[uploadShipmentAttachment] Error uploading ${docType} for shipment ${shipmentId}:`, error);
     throw error;
   }
   
-  return data.path;
+  return data!.path;
 }
 
 export function getShipmentAttachmentUrl(path: string): string {
