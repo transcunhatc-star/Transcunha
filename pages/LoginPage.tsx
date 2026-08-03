@@ -74,31 +74,31 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0c2e17] via-[#124E27] to-[#0a2312] overflow-hidden">
-      {/* Background glow effects matching the brand palette */}
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-[#090d16] via-[#0f172a] to-[#1e293b] overflow-hidden">
+      {/* Background glow effects matching the TRANSCUNHA brand palette */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Top-right golden orange glow */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#F99F1B] opacity-25 blur-[100px] rounded-full"></div>
-        {/* Bottom-left lime green glow */}
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#86efac] opacity-15 blur-[100px] rounded-full"></div>
-        {/* Subtle center warm glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#F99F1B] opacity-[0.03] blur-[120px] rounded-full"></div>
+        {/* Top-right electric azure blue glow */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#0066ff] opacity-25 blur-[100px] rounded-full"></div>
+        {/* Bottom-left sky blue glow */}
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#38bdf8] opacity-15 blur-[100px] rounded-full"></div>
+        {/* Subtle center warm blue glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#0066ff] opacity-[0.05] blur-[120px] rounded-full"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[360px] p-8 space-y-4 bg-white dark:bg-dark-card rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[380px] p-8 space-y-4 bg-white dark:bg-dark-card rounded-2xl shadow-2xl overflow-hidden">
         {/* Top brand gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#124E27] via-[#F99F1B] to-[#86efac]"></div>
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1e293b] via-[#0066ff] to-[#38bdf8]"></div>
 
         <div className="text-center pt-2">
           {companyLogo ? (
-            <img src={companyLogo} alt="Logo da Empresa" className="h-16 mx-auto filter drop-shadow-md" />
+            <img src={companyLogo} alt="Logo da Empresa" className="h-20 mx-auto filter drop-shadow-md object-contain" />
           ) : (
             <h1 className="text-4xl font-black tracking-tighter">
-              <span className="text-accent">TRANS</span><span className="text-primary dark:text-white">CUNHA</span>
+              <span className="text-primary dark:text-white">TRANS</span><span className="text-accent">CUNHA</span>
             </h1>
           )}
           <div className="mt-2 flex flex-col items-center">
-            <p className="text-lg font-bold text-primary dark:text-[#86efac]">Sistema de Gestão Logística</p>
+            <p className="text-sm font-bold text-primary dark:text-[#38bdf8] tracking-wide uppercase">Sistema de Gestão Logística</p>
             <div className="h-1 w-16 bg-gradient-to-r from-accent to-primary mt-1.5 rounded-full"></div>
           </div>
         </div>
@@ -163,8 +163,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, users, companyLogo }) =>
         </form>
         
         <div className="text-center pt-2">
-            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest font-bold">
-                Transparência <span className="text-accent">•</span> Cuidado <span className="text-accent">•</span> Prazo
+            <p className="text-xs text-gray-400 dark:text-gray-400 uppercase tracking-widest font-bold">
+                Soluções Que Movem O Futuro
             </p>
         </div>
       </div>

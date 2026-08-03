@@ -192,7 +192,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ user, onLogout, currentPage, setC
                             <button
                                 onClick={() => handleDropdownToggle(item.id)}
                                 className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                                    isActive ? 'text-primary dark:text-blue-400 bg-primary/10 dark:bg-primary/20 shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    isActive ? 'text-accent dark:text-blue-400 bg-accent/10 dark:bg-accent/20 font-semibold shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                             >
                                 <span>{item.label}</span>
@@ -208,7 +208,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ user, onLogout, currentPage, setC
                                             <div className="mt-1 normal-case font-normal text-sm">
                                               {child.children.map(grandChild => (
                                                 <a key={grandChild.id} href="#" onClick={(e) => { e.preventDefault(); handlePageSelect(grandChild.id as Page); }}
-                                                   className={`flex items-center gap-3 px-2 py-1.5 rounded-md ${currentPage === grandChild.id ? 'text-primary dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
+                                                   className={`flex items-center gap-3 px-2 py-1.5 rounded-md ${currentPage === grandChild.id ? 'text-accent font-semibold dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
                                                 >
                                                    <grandChild.icon className="w-4 h-4" />
                                                    {grandChild.label}
@@ -220,7 +220,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ user, onLogout, currentPage, setC
                                       }
                                       return (
                                         <a key={child.id} href="#" onClick={(e) => { e.preventDefault(); handlePageSelect(child.id as Page); }}
-                                           className={`flex items-center gap-3 px-4 py-2 text-sm ${currentPage === child.id ? 'text-primary dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
+                                           className={`flex items-center gap-3 px-4 py-2 text-sm ${currentPage === child.id ? 'text-accent font-semibold dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700`}
                                         >
                                            <child.icon className="w-4 h-4" />
                                            {child.label}
@@ -235,7 +235,7 @@ const TopNavBar: React.FC<TopNavBarProps> = ({ user, onLogout, currentPage, setC
                 return (
                     <a href="#" key={item.id} onClick={(e) => { e.preventDefault(); handlePageSelect(item.id as Page); }}
                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                           isActive ? 'text-primary dark:text-blue-400 bg-primary/10 dark:bg-primary/20 shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                           isActive ? 'text-accent dark:text-blue-400 bg-accent/10 dark:bg-accent/20 font-semibold shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                        }`}
                     >{item.label}</a>
                 )

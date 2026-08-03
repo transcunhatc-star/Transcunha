@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --primary: #124E27;       /* Deep Forest Green (Mercantil) */
-  --primary-dark: #0E331B;  /* Darker Forest Green */
-  --accent: #F99F1B;        /* Warm Golden Amber (Agro) */
-  --accent-dark: #C6710B;   /* Deeper Warm Orange */
+  --primary: #1e293b;       /* Slate Dark Navy (TC Slate) */
+  --primary-dark: #0f172a;  /* Darker Slate Navy */
+  --accent: #0066ff;        /* Electric Azure Blue (TC Cunha) */
+  --accent-dark: #0052cc;   /* Deeper Electric Blue */
 }
 
 /* =========================================
@@ -17,12 +17,12 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F4F7F5; /* Very subtle green-tinted light gray for premium feel */
+  background-color: #F8FAFC; /* Clean light gray background */
   color: #1E293B;
 }
 
 .dark body {
-  background-color: #0F172A;
+  background-color: #0B1320;
   color: #F8FAFC;
 }
 
@@ -44,8 +44,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  @apply border-primary-400 bg-white;
-  box-shadow: 0 0 0 3px rgba(18, 78, 39, 0.15) !important;
+  @apply border-accent-400 bg-white;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.18) !important;
   outline: none !important;
 }
 
@@ -58,8 +58,8 @@ textarea:focus {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus {
-  @apply border-primary-500 bg-gray-800;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+  @apply border-accent-500 bg-gray-800;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.25) !important;
 }
 
 /* Inputs desabilitados */
@@ -87,25 +87,25 @@ button:active {
 /* Redefinindo o botão azul padrao do sistema para usar a cor primária ou accent de forma mais premium */
 button.bg-blue-600,
 button.bg-blue-500 {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-  box-shadow: 0 4px 12px rgba(18, 78, 39, 0.2) !important;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25) !important;
   border: 1px solid rgba(0,0,0,0.1);
 }
 
 button.bg-blue-600:hover,
 button.bg-blue-500:hover {
-  background: linear-gradient(135deg, #166534 0%, var(--primary) 100%) !important;
-  box-shadow: 0 6px 16px rgba(18, 78, 39, 0.3) !important;
+  background: linear-gradient(135deg, #2563eb 0%, var(--accent) 100%) !important;
+  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.35) !important;
   transform: translateY(-1px);
 }
 
 button.text-blue-600 {
-  color: var(--primary) !important;
+  color: var(--accent) !important;
 }
 
 button.text-blue-600:hover {
-  color: var(--primary-dark) !important;
-  background-color: rgba(18, 78, 39, 0.05) !important;
+  color: var(--accent-dark) !important;
+  background-color: rgba(0, 102, 255, 0.08) !important;
 }
 
 /* Botão Accent Existente */
@@ -115,14 +115,14 @@ button.text-blue-600:hover {
   font-weight: 600;
   padding: 0.625rem 1.25rem;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(249, 159, 27, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25);
   border: 1px solid rgba(255,255,255,0.1);
   letter-spacing: 0.01em;
 }
 
 .btn-accent:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, var(--accent) 100%);
-  box-shadow: 0 6px 16px rgba(249, 159, 27, 0.35);
+  background: linear-gradient(135deg, #3b82f6 0%, var(--accent) 100%);
+  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.35);
   transform: translateY(-2px);
 }
 

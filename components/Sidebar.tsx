@@ -138,10 +138,10 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onLogout, currentPage, setCurre
           setCurrentPage(id);
         }}
         title={isCollapsed ? label : undefined}
-        className={`flex items-center px-4 py-2 mt-1 text-gray-600 dark:text-gray-400 transition-colors duration-300 transform rounded-lg ${marginLeft} ${
+        className={`flex items-center px-4 py-2 mt-1 transition-colors duration-300 transform rounded-lg ${marginLeft} ${
           isActive
-            ? 'bg-blue-200 dark:bg-blue-900 text-gray-700 dark:text-gray-200'
-            : 'hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'
+            ? 'bg-accent/15 dark:bg-accent/25 text-accent font-semibold'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200'
         } ${isCollapsed ? 'justify-center' : ''}`}
       >
         <Icon className="w-5 h-5" />
@@ -164,10 +164,16 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onLogout, currentPage, setCurre
     >
       <div className="h-16 flex items-center justify-center">
         {companyLogo ? (
-            <img src={companyLogo} alt="Logo da Empresa" className={`transition-all duration-300 mx-auto ${isCollapsed ? 'h-10' : 'h-12'}`} />
+            <img src={companyLogo} alt="Logo da Empresa" className={`transition-all duration-300 mx-auto object-contain ${isCollapsed ? 'h-10' : 'h-14'}`} />
         ) : (
-            <h2 className="text-3xl font-semibold text-center text-primary dark:text-white">
-            {isCollapsed ? 'TRANSCUNHA' : 'TRANSCUNHA Logística'}
+            <h2 className="text-2xl font-black text-center tracking-tight">
+            {isCollapsed ? (
+              <span className="text-accent">TC</span>
+            ) : (
+              <>
+                <span className="text-primary dark:text-white">TRANS</span><span className="text-accent">CUNHA</span>
+              </>
+            )}
             </h2>
         )}
       </div>
